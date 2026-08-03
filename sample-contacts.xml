@@ -1,0 +1,66 @@
+# NFC Contacts — 100% GitHub Pages, không server, không database
+
+Danh thiếp điện tử chia sẻ qua NFC/QR. Toàn bộ dữ liệu được lưu ở:
+
+- **Dashboard** (`index.html`) → `localStorage` của trình duyệt (chỉ máy bạn dùng để quản lý).
+- **Public Contact** (`contact.html`) → dữ liệu được **mã hoá thẳng vào URL** (tham số `?d=`). Khi ai đó tap NFC / quét QR / bấm link, trang tự giải mã và hiển thị — không cần gọi server hay database nào cả.
+
+## Cấu trúc
+
+```
+index.html          Dashboard (quản lý contact)
+contact.html         Trang public hiển thị 1 contact (đọc từ URL)
+assets/style.css     Giao diện dùng chung
+assets/common.js     Hàm dùng chung: storage, mã hoá URL, tạo vCard, đọc XML
+assets/app.js        Logic Dashboard
+assets/contact.js    Logic trang Public Contact
+sample-contacts.json Mẫu file để test Import JSON
+sample-contacts.xml  Mẫu file để test Import XML
+```
+
+## Deploy lên GitHub Pages
+
+1. Tạo repo mới trên GitHub, push toàn bộ thư mục này lên nhánh `main`.
+2. Vào **Settings → Pages**, chọn nguồn build là nhánh `main`, thư mục `/ (root)`.
+3. Sau vài phút, site sẽ có địa chỉ dạng:
+   `https://<username>.github.io/<repo>/`
+
+Không cần build step, không cần Node/npm — đây là site tĩnh thuần HTML/CSS/JS.
+
+## Cách dùng Dashboard
+
+- **➕ Create Contact**: nhập tên, chức vụ, công ty, điện thoại, email, website, avatar (URL hoặc tải ảnh lên — ảnh tải lên sẽ được thu nhỏ & nhúng base64).
+- **🔍 Search**: lọc theo tên/công ty/chức vụ/email/điện thoại.
+- **📋 Copy NFC URL**: copy link dạng `.../contact.html?d=...` — đây chính là nội dung bạn ghi vào thẻ NFC (dùng app như *NFC Tools* để ghi URL này vào tag) hoặc dùng để tạo mã QR.
+- **📄 Download VCF**: tải file `.vcf` để lưu ngay vào danh bạ điện thoại.
+- **🗑 Delete Contact**: xoá khỏi Dashboard (không ảnh hưởng các NFC URL đã tạo/đã ghi vào tag).
+- **📥 Import JSON/XML**: nhập hàng loạt từ file JSON (mảng object) hoặc XML (xem `sample-contacts.xml`).
+- **📤 Export JSON**: xuất toàn bộ danh sách contact hiện có ra file JSON để backup/di chuyển sang máy khác.
+
+> Lưu ý: `localStorage` chỉ tồn tại trên trình duyệt/máy bạn đang dùng. Muốn dùng Dashboard ở máy khác, hãy **Export JSON** ở máy cũ rồi **Import** ở máy mới.
+
+## Cách dùng Public Contact
+
+Khi mở link `contact.html?d=...` (qua tap NFC, quét QR, hoặc bấm link), người nhận sẽ thấy:
+
+- Avatar, Tên, Chức vụ, Công ty, Điện thoại, Email, Website
+- Nút **Save Contact** → tải file `.vcf` để lưu thẳng vào danh bạ điện thoại của họ
+
+Trang này **không đọc localStorage** — mọi thứ nằm gọn trong URL, nên hoạt động độc lập trên bất kỳ thiết bị nào, kể cả khi người quét chưa từng vào Dashboard.
+
+## Mẹo giữ NFC URL ngắn
+
+Hầu hết thẻ NFC có dung lượng giới hạn (vài trăm byte đến vài KB). Để URL/thẻ gọn nhẹ:
+
+- Ưu tiên nhập **Avatar URL** (link ảnh có sẵn) thay vì tải ảnh lên trực tiếp.
+- Nếu tải ảnh lên, ảnh sẽ tự được nén nhỏ (160×160, JPEG) nhưng vẫn làm URL dài hơn đáng kể — chỉ nên dùng khi không có link ảnh sẵn.
+
+## Cấu hình Base URL (tuỳ chọn)
+
+Mặc định, NFC URL được tạo dựa trên domain hiện tại đang mở Dashboard. Nếu bạn cần chỉ định thủ công (ví dụ đang test ở `localhost` nhưng muốn tạo URL trỏ về GitHub Pages), mở Console trình duyệt và chạy:
+
+```js
+saveSettings({ baseUrl: "https://<username>.github.io/<repo>" });
+```
+
+rồi tải lại trang Dashboard.

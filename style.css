@@ -1,0 +1,59 @@
+/* contact.js — renders the public, shareable contact card.
+   Everything the card needs lives in the URL: no server, no database. */
+
+function initials(name) {
+  return (name || '?').trim().split(/\s+/).slice(-2).map(w => w[0]?.toUpperCase() || '').join('');
+}
+
+function iconPhone() { return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`; }
+function iconMail() { return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z" opacity="0"/><path d="M22 6l-10 7L2 6"/><path d="M2 6h20v12H2z"/></svg>`; }
+function iconGlobe() { return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20z"/></svg>`; }
+function iconSave() { return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v13m0 0l-4-4m4 4l4-4"/><path d="M4 20h16"/></svg>`; }
+
+function renderMissing() {
+  document.getElementById('root').innerHTML = `
+    <div class="pc-missing">
+      <strong>Không có dữ liệu contact</strong>
+      Đường dẫn này thiếu tham số dữ liệu. Hãy mở link được tạo từ Dashboard (Copy NFC URL).
+    </div>`;
+}
+
+function renderContact(c) {
+  const root = document.getElementById('root');
+  const rows = [];
+  if (c.phone) rows.push(`<div class="pc-row">${iconPhone()}<a href="tel:${escapeHtml(c.phone)}">${escapeHtml(c.phone)}</a></div>`);
+  if (c.email) rows.push(`<div class="pc-row">${iconMail()}<a href="mailto:${escapeHtml(c.email)}">${escapeHtml(c.email)}</a></div>`);
+  if (c.website) rows.push(`<div class="pc-row">${iconGlobe()}<a href="${escapeHtml(c.website)}" target="_blank" rel="noopener">${escapeHtml(c.website.replace(/^https?:\/\//, ''))}</a></div>`);
+
+  root.innerHTML = `
+    <div class="pc-card">
+      <div class="pc-signal">
+        <span class="ring"></span><span class="ring"></span><span class="ring"></span>
+        <div class="pc-avatar" style="${c.avatar ? `background-image:url('${c.avatar.replace(/'/g, "%27")}')` : ''}">${c.avatar ? '' : initials(c.name)}</div>
+      </div>
+      <div class="pc-name">${escapeHtml(c.name || 'Chưa có tên')}</div>
+      ${c.title ? `<div class="pc-role">${escapeHtml(c.title)}</div>` : ''}
+      ${c.company ? `<div class="pc-company">${escapeHtml(c.company)}</div>` : ''}
+      <div class="pc-divider"></div>
+      <div class="pc-list">${rows.join('') || '<div class="pc-row" style="justify-content:center;color:var(--muted)">Chưa có thông tin liên hệ</div>'}</div>
+      <button class="pc-save" id="saveBtn">${iconSave()} Save Contact</button>
+      <div class="pc-foot">Digital business card · NFC</div>
+    </div>`;
+
+  document.getElementById('saveBtn').addEventListener('click', () => downloadVCF(c));
+}
+
+(function init() {
+  const params = new URLSearchParams(window.location.search);
+  const d = params.get('d');
+  if (!d) { renderMissing(); return; }
+  try {
+    const payload = decodeData(d);
+    const c = contactFromPayload(payload);
+    if (!c.name && !c.phone && !c.email) { renderMissing(); return; }
+    renderContact(c);
+    document.title = c.name ? `${c.name} — Danh thiếp điện tử` : 'Danh thiếp điện tử';
+  } catch (e) {
+    renderMissing();
+  }
+})();
