@@ -1,1 +1,0 @@
-export function generateVCard(c){return `BEGIN:VCARD\nVERSION:3.0\nFN:${c.fullname}\nEND:VCARD`;}

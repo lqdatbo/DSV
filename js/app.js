@@ -1,1 +1,0 @@
-console.log('Sprint 1 starter');
