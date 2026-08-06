@@ -1,327 +1,492 @@
-/* ===========================================================
-   Design tokens
-   Subject: NFC digital business cards — a "chip & signal" language.
-   =========================================================== */
-:root{
-  --ink: #12151b;
-  --ink-2: #191d25;
-  --paper: #f6f4ee;
-  --paper-dim: #e9e6dc;
-  --signal: #33e0c4;
-  --signal-dim: #1c8f7c;
-  --brass: #c9a15a;
-  --muted: #8b93a3;
-  --line: #262b34;
-  --line-soft: rgba(246,244,238,0.12);
-  --danger: #ea6a5f;
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Danh bạ NFC</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
-  --font-display: "Space Grotesk", "Segoe UI", sans-serif;
-  --font-body: "Inter", "Segoe UI", sans-serif;
-  --font-mono: "IBM Plex Mono", "Consolas", monospace;
+  :root{
+    --ink:#12161d;
+    --panel:#1a212b;
+    --panel-2:#212a36;
+    --card:#eee7d6;
+    --card-shade:#e2d9c2;
+    --brass:#b8925e;
+    --brass-light:#d9b988;
+    --text:#e7e2d4;
+    --text-muted:#8b93a1;
+    --ink-on-card:#2a2620;
+    --ok:#7fae8f;
+    --radius:14px;
+    --serif:'Fraunces', serif;
+    --sans:'Inter', sans-serif;
+    --mono:'JetBrains Mono', monospace;
+  }
 
-  --radius: 14px;
-  --radius-sm: 8px;
-}
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 20% -10%, #1e2733 0%, transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, #1c2530 0%, transparent 55%),
+      var(--ink);
+    color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh;
+    padding:48px 20px 80px;
+  }
 
-*{ box-sizing: border-box; }
-html,body{ height:100%; }
-body{
-  margin:0;
-  background: var(--ink);
-  color: var(--paper);
-  font-family: var(--font-body);
-  -webkit-font-smoothing: antialiased;
-}
-a{ color: inherit; }
-button{ font-family: inherit; }
-::selection{ background: var(--signal); color: var(--ink); }
+  a{color:inherit;}
 
-/* Focus visibility */
-:focus-visible{
-  outline: 2px solid var(--signal);
-  outline-offset: 2px;
-}
+  .wrap{max-width:760px;margin:0 auto;}
 
-/* ---------------- Layout shell ---------------- */
-.shell{
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 28px 20px 80px;
-}
+  header.top{margin-bottom:36px;}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--brass-light);
+    display:flex;align-items:center;gap:10px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--brass-light);
+    box-shadow:0 0 0 0 rgba(217,185,136,.6);animation:pulse 2.2s infinite;}
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(217,185,136,.45);}
+    70%{box-shadow:0 0 0 10px rgba(217,185,136,0);}
+    100%{box-shadow:0 0 0 0 rgba(217,185,136,0);}
+  }
+  h1{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(28px,5vw,38px);
+    margin:10px 0 4px;
+    letter-spacing:-.01em;
+  }
+  .sub{color:var(--text-muted);font-size:14.5px;}
 
-.topbar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap: 16px;
-  margin-bottom: 28px;
-}
-.brand{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 1.15rem;
-  letter-spacing: 0.01em;
-}
-.brand .chip{
-  width: 30px; height: 30px;
-  border-radius: 7px;
-  background: linear-gradient(135deg, var(--signal), var(--signal-dim));
-  position: relative;
-  flex-shrink: 0;
-}
-.brand .chip::after{
-  content:"";
-  position:absolute; inset: 7px;
-  border: 1.5px solid var(--ink);
-  border-radius: 3px;
-  opacity: .55;
-}
-.eyebrow{
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
+  .searchbar{
+    margin-top:24px;
+    display:flex;align-items:center;gap:10px;
+    background:var(--panel);
+    border:1px solid #2a3341;
+    border-radius:10px;
+    padding:12px 14px;
+  }
+  .searchbar svg{flex:0 0 auto;opacity:.55;}
+  .searchbar input{
+    flex:1;background:none;border:none;outline:none;
+    color:var(--text);font-family:var(--sans);font-size:15px;
+  }
+  .searchbar input::placeholder{color:var(--text-muted);}
 
-/* ---------------- Buttons ---------------- */
-.btn{
-  display:inline-flex; align-items:center; gap:8px;
-  border: 1px solid var(--line-soft);
-  background: var(--ink-2);
-  color: var(--paper);
-  padding: 10px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 0.88rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: border-color .15s ease, transform .1s ease, background .15s ease;
-  white-space: nowrap;
-}
-.btn:hover{ border-color: var(--signal-dim); }
-.btn:active{ transform: translateY(1px); }
-.btn-primary{
-  background: var(--signal);
-  color: var(--ink);
-  border-color: var(--signal);
-  font-weight: 600;
-}
-.btn-primary:hover{ background: #52e9d0; }
-.btn-danger{ color: var(--danger); border-color: rgba(234,106,95,0.35); background: transparent; }
-.btn-danger:hover{ border-color: var(--danger); }
-.btn-ghost{ background: transparent; }
-.btn-sm{ padding: 6px 10px; font-size: 0.78rem; border-radius: 7px; }
-.btn:disabled{ opacity:.4; cursor:not-allowed; }
-.icon{ width:16px; height:16px; flex-shrink:0; }
+  .count{
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--text-muted);
+    margin:18px 2px 10px;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+  }
 
-/* ---------------- Toolbar / search ---------------- */
-.toolbar{
-  display:flex; flex-wrap:wrap; gap:10px;
-  align-items:center;
-  margin-bottom: 22px;
-}
-.search{
-  flex: 1 1 220px;
-  position: relative;
-}
-.search input{
-  width:100%;
-  background: var(--ink-2);
-  border: 1px solid var(--line-soft);
-  color: var(--paper);
-  padding: 10px 14px 10px 36px;
-  border-radius: var(--radius-sm);
-  font-size: 0.9rem;
-}
-.search input::placeholder{ color: var(--muted); }
-.search svg{
-  position:absolute; left:12px; top:50%; transform:translateY(-50%);
-  width:15px; height:15px; color: var(--muted);
-}
-.spacer{ flex: 1 1 auto; }
-.file-btn{ position:relative; overflow:hidden; }
-.file-btn input[type=file]{
-  position:absolute; inset:0; opacity:0; cursor:pointer;
-}
+  .list{
+    display:flex;flex-direction:column;
+    border-radius:var(--radius);
+    overflow:hidden;
+    border:1px solid #2a3341;
+  }
 
-/* ---------------- Contact grid ---------------- */
-.grid{
-  display:grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 14px;
-}
-.card{
-  background: var(--ink-2);
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius);
-  padding: 16px;
-  display:flex; flex-direction:column; gap: 12px;
-  transition: border-color .15s ease;
-}
-.card:hover{ border-color: var(--signal-dim); }
-.card-head{ display:flex; gap:12px; align-items:center; }
-.avatar{
-  width:48px; height:48px; border-radius: 10px;
-  background: var(--paper-dim) center/cover no-repeat;
-  display:flex; align-items:center; justify-content:center;
-  font-family: var(--font-display); font-weight:600; color: var(--ink);
-  flex-shrink:0;
-}
-.card-title{ min-width:0; }
-.card-title .name{
-  font-family: var(--font-display); font-weight:600; font-size:1rem;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-.card-title .role{
-  font-size: 0.8rem; color: var(--muted);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-.card-fields{
-  font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted);
-  display:flex; flex-direction:column; gap:4px;
-}
-.card-fields div{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.card-actions{
-  display:flex; flex-wrap:wrap; gap:8px; margin-top: 4px;
-  border-top: 1px solid var(--line-soft); padding-top: 12px;
-}
+  .row{
+    display:flex;align-items:center;gap:14px;
+    padding:15px 16px;
+    background:var(--panel);
+    border-bottom:1px solid #242c38;
+    cursor:pointer;
+    transition:background .15s ease;
+    text-align:left;
+    width:100%;
+    color:var(--text);
+    font-family:inherit;
+  }
+  .row:last-child{border-bottom:none;}
+  .row:hover, .row:focus-visible{background:var(--panel-2);}
+  .row:focus-visible{outline:2px solid var(--brass-light);outline-offset:-2px;}
 
-.empty{
-  grid-column: 1/-1;
-  text-align:center;
-  padding: 60px 20px;
-  color: var(--muted);
-  border: 1px dashed var(--line-soft);
-  border-radius: var(--radius);
-}
-.empty strong{ color: var(--paper); display:block; font-family: var(--font-display); font-size:1.05rem; margin-bottom:6px; }
+  .tab{
+    flex:0 0 40px;height:40px;border-radius:8px;
+    background:linear-gradient(155deg,var(--brass-light),var(--brass));
+    color:#241d10;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--serif);font-weight:600;font-size:16px;
+  }
+  .row-main{flex:1;min-width:0;}
+  .row-name{font-size:15.5px;font-weight:600;color:var(--text);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .row-meta{font-size:12.5px;color:var(--text-muted);margin-top:2px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .row-arrow{opacity:.4;flex:0 0 auto;}
 
-/* ---------------- Modal ---------------- */
-.modal-backdrop{
-  position:fixed; inset:0; background: rgba(10,12,15,0.72);
-  display:flex; align-items:flex-start; justify-content:center;
-  padding: 40px 16px; overflow-y:auto; z-index: 50;
-}
-.modal-backdrop[hidden]{ display:none; }
-.modal{
-  background: var(--ink-2);
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius);
-  width: 100%; max-width: 480px;
-  padding: 24px;
-}
-.modal h2{ font-family: var(--font-display); margin: 0 0 4px; font-size:1.2rem; }
-.modal .sub{ color: var(--muted); font-size:0.85rem; margin-bottom:18px; }
-.field{ margin-bottom: 14px; }
-.field label{ display:block; font-size:0.78rem; color: var(--muted); margin-bottom:6px; font-family: var(--font-mono); letter-spacing:0.03em; }
-.field input{
-  width:100%; background: var(--ink);
-  border: 1px solid var(--line-soft); color: var(--paper);
-  padding: 10px 12px; border-radius: 8px; font-size:0.92rem;
-}
-.avatar-row{ display:flex; align-items:center; gap:14px; }
-.avatar-row .avatar{ width:56px; height:56px; }
-.modal-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
+  .empty, .loading, .error{
+    padding:40px 16px;text-align:center;color:var(--text-muted);
+    font-size:14px;border-radius:var(--radius);border:1px dashed #2a3341;
+  }
+  .error{color:#d98b7f;}
 
-/* ---------------- Toast ---------------- */
-.toast{
-  position: fixed; bottom: 22px; left:50%; transform: translateX(-50%) translateY(20px);
-  background: var(--paper); color: var(--ink);
-  padding: 11px 18px; border-radius: 999px;
-  font-size: 0.85rem; font-weight:500;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-  opacity:0; pointer-events:none;
-  transition: opacity .2s ease, transform .2s ease;
-  z-index: 100;
-}
-.toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+  /* Modal */
+  .backdrop{
+    position:fixed;inset:0;background:rgba(9,11,15,.72);
+    backdrop-filter:blur(3px);
+    display:none;align-items:center;justify-content:center;
+    padding:20px;z-index:50;
+  }
+  .backdrop.open{display:flex;}
 
-/* ===========================================================
-   Public contact card page
-   =========================================================== */
-.pc-body{
-  min-height:100%;
-  display:flex; align-items:center; justify-content:center;
-  padding: 32px 18px;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(51,224,196,0.10), transparent 55%),
-    var(--ink);
-}
-.pc-card{
-  width:100%; max-width: 380px;
-  background: var(--ink-2);
-  border: 1px solid var(--line-soft);
-  border-radius: 22px;
-  padding: 36px 28px 28px;
-  text-align:center;
-  position: relative;
-}
-.pc-signal{
-  width:104px; height:104px; margin: 0 auto 18px;
-  position: relative;
-  display:flex; align-items:center; justify-content:center;
-}
-.pc-signal .ring{
-  position:absolute; border-radius:50%;
-  border: 1.5px solid var(--signal-dim);
-  opacity:0;
-  animation: pcPing 2.6s ease-out infinite;
-}
-.pc-signal .ring:nth-child(1){ width:104px; height:104px; animation-delay:0s; }
-.pc-signal .ring:nth-child(2){ width:104px; height:104px; animation-delay:.9s; }
-.pc-signal .ring:nth-child(3){ width:104px; height:104px; animation-delay:1.8s; }
-@keyframes pcPing{
-  0%{ transform: scale(0.6); opacity:.65; }
-  100%{ transform: scale(1.15); opacity:0; }
-}
-.pc-avatar{
-  width:88px; height:88px; border-radius:50%;
-  background: var(--paper-dim) center/cover no-repeat;
-  display:flex; align-items:center; justify-content:center;
-  font-family: var(--font-display); font-weight:700; font-size:1.8rem; color: var(--ink);
-  position:relative; z-index:1;
-  border: 3px solid var(--ink-2);
-}
-.pc-name{ font-family: var(--font-display); font-size:1.5rem; font-weight:600; margin: 4px 0 2px; }
-.pc-role{ color: var(--signal); font-size:0.92rem; font-weight:500; }
-.pc-company{ color: var(--muted); font-size:0.88rem; margin-top:2px; }
+  .cardmodal{
+    width:100%;max-width:420px;
+    background:linear-gradient(160deg,var(--card),var(--card-shade));
+    color:var(--ink-on-card);
+    border-radius:16px;
+    padding:28px 26px 24px;
+    position:relative;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,.6);
+    animation:tapin .32s cubic-bezier(.2,.9,.25,1);
+  }
+  @keyframes tapin{
+    0%{opacity:0;transform:translateY(14px) scale(.97);}
+    100%{opacity:1;transform:translateY(0) scale(1);}
+  }
+  .notch{
+    position:absolute;left:-1px;top:26px;width:16px;height:46px;
+    background:var(--ink);border-radius:0 8px 8px 0;
+  }
+  .close-btn{
+    position:absolute;top:14px;right:14px;
+    width:30px;height:30px;border-radius:50%;
+    border:none;background:rgba(0,0,0,.08);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;color:var(--ink-on-card);
+  }
+  .close-btn:hover{background:rgba(0,0,0,.15);}
 
-.pc-divider{ height:1px; background: var(--line-soft); margin: 22px 0; }
+  .m-eyebrow{
+    font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--brass);
+  }
+  .m-name{font-family:var(--serif);font-weight:600;font-size:26px;margin:6px 0 2px;line-height:1.15;}
+  .m-title{font-size:14px;color:#5c5540;}
+  .m-company{font-size:13.5px;color:#5c5540;margin-top:2px;}
 
-.pc-list{ display:flex; flex-direction:column; gap:10px; text-align:left; margin-bottom:24px; }
-.pc-row{
-  display:flex; align-items:center; gap:12px;
-  background: var(--ink); border: 1px solid var(--line-soft);
-  border-radius: 10px; padding: 11px 13px;
-  font-size: 0.9rem;
-}
-.pc-row svg{ width:17px; height:17px; color: var(--signal); flex-shrink:0; }
-.pc-row a, .pc-row span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .divider{height:1px;background:rgba(42,38,32,.15);margin:18px 0 14px;}
 
-.pc-save{
-  width:100%; padding:14px; border-radius: 12px;
-  background: var(--signal); color: var(--ink);
-  font-family: var(--font-display); font-weight:700; font-size:1rem;
-  border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;
-}
-.pc-save:hover{ background:#52e9d0; }
-.pc-save:active{ transform: translateY(1px); }
-.pc-foot{ margin-top:16px; font-family: var(--font-mono); font-size:0.68rem; color: var(--muted); letter-spacing:0.06em; text-transform:uppercase; }
+  .field{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:14px;}
+  .field svg{flex:0 0 auto;opacity:.65;}
+  .field a{text-decoration:none;font-family:var(--mono);font-size:13.5px;}
+  .field a:hover{text-decoration:underline;}
 
-.pc-missing{
-  max-width:380px; text-align:center; color: var(--muted);
-}
-.pc-missing strong{ color:var(--paper); display:block; font-family: var(--font-display); font-size:1.2rem; margin-bottom:8px; }
+  .actions{display:flex;gap:10px;margin-top:20px;}
+  .btn{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+    padding:12px 14px;border-radius:10px;border:none;cursor:pointer;
+    font-family:var(--sans);font-weight:600;font-size:13.5px;
+    transition:transform .12s ease, opacity .12s ease;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn-primary{background:#241d10;color:var(--card);}
+  .btn-primary:hover{opacity:.88;}
+  .btn-ghost{background:rgba(0,0,0,.08);color:var(--ink-on-card);}
+  .btn-ghost:hover{background:rgba(0,0,0,.14);}
+  .btn.copied{background:var(--ok);color:#0e1f16;}
 
-@media (prefers-reduced-motion: reduce){
-  .pc-signal .ring{ animation: none; opacity:.25; }
-}
+  .id-tag{
+    position:absolute;bottom:16px;right:20px;
+    font-family:var(--mono);font-size:10.5px;color:#8a8266;letter-spacing:.05em;
+  }
 
-/* Responsive */
-@media (max-width: 560px){
-  .topbar{ flex-wrap:wrap; }
-  .grid{ grid-template-columns: 1fr; }
-}
+  @media (max-width:480px){
+    body{padding:32px 14px 60px;}
+    .row{padding:13px 12px;gap:11px;}
+    .tab{width:36px;height:36px;font-size:14px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .cardmodal{animation:none;}
+    .eyebrow .dot{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow"><span class="dot"></span>Danh bạ · Tap NFC</div>
+    <h1>Danh bạ liên hệ</h1>
+    <div class="sub">Chạm vào một liên hệ để xem chi tiết, lưu danh thiếp hoặc lấy link NFC.</div>
+
+    <div class="searchbar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="search" type="text" placeholder="Tìm theo tên, công ty, chức danh…">
+    </div>
+  </header>
+
+  <div id="count" class="count"></div>
+  <div id="listArea">
+    <div class="loading">Đang tải danh bạ…</div>
+  </div>
+</div>
+
+<div class="backdrop" id="backdrop">
+  <div class="cardmodal" id="cardmodal" role="dialog" aria-modal="true">
+    <div class="notch"></div>
+    <button class="close-btn" id="closeBtn" aria-label="Đóng">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+
+    <div class="m-eyebrow" id="mEyebrow">Danh thiếp</div>
+    <div class="m-name" id="mName">—</div>
+    <div class="m-title" id="mTitle"></div>
+    <div class="m-company" id="mCompany"></div>
+
+    <div class="divider"></div>
+
+    <div id="mFields"></div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="vcfBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16"/></svg>
+        Tải VCF
+      </button>
+      <button class="btn btn-ghost" id="copyBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+        Copy link NFC
+      </button>
+    </div>
+
+    <div class="id-tag" id="mId"></div>
+  </div>
+</div>
+
+<script>
+  // ====== CẤU HÌNH ======
+  // Dùng API opensheet.elk.sh để đọc Google Sheet dưới dạng JSON (tránh lỗi CORS khi fetch CSV trực tiếp).
+  // Định dạng: https://opensheet.elk.sh/{spreadsheet_id}/{tên_sheet_hoặc_số_thứ_tự_tab, bắt đầu từ 1}
+  // Sheet cần bật chia sẻ "Bất kỳ ai có đường liên kết" > Người xem.
+  const SHEET_API_URL = "https://opensheet.elk.sh/1ImwCxw0HGk8bOEdJRQE_Iv5uBgbr1P79ONPVVJGcgzI/1";
+
+  // Endpoint Apps Script — dùng để ghi log lượt tap NFC (không bắt buộc, gửi kiểu fire-and-forget)
+  const POST_URL = "https://script.google.com/macros/s/AKfycbx6Ej9cGAzTAXpDQs-4zcVEMZErZS7AbZ631AzJ5jPlOnH9bTMFk2-ouhyu7mNvqZCb/exec";
+
+  // ====== STATE ======
+  let contacts = [];
+
+  const listArea = document.getElementById('listArea');
+  const countEl = document.getElementById('count');
+  const searchInput = document.getElementById('search');
+  const backdrop = document.getElementById('backdrop');
+
+  function normalizeHeader(h){
+    return h.trim().toLowerCase().replace(/\s+/g,'');
+  }
+
+  async function loadContacts(){
+    try{
+      const res = await fetch(SHEET_API_URL, {cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if(!Array.isArray(data) || !data.length) throw new Error('Sheet trống hoặc chưa bật chia sẻ công khai');
+
+      contacts = data.map(row => {
+        const norm = {};
+        Object.keys(row).forEach(k => { norm[normalizeHeader(k)] = row[k]; });
+        const get = (...keys) => {
+          for(const k of keys){ if(norm[k] !== undefined && norm[k] !== null) return String(norm[k]).trim(); }
+          return '';
+        };
+        return {
+          id: get('id'),
+          lastName: get('lastname'),
+          firstName: get('firstname'),
+          phone: get('phone'),
+          email: get('email'),
+          company: get('company'),
+          jobTitle: get('jobtitle', 'title'),
+        };
+      }).filter(c => c.id);
+
+      renderList(contacts);
+      handleDeepLink();
+    } catch(err){
+      listArea.innerHTML = `<div class="error">Không tải được danh bạ. Kiểm tra sheet đã bật chia sẻ "Bất kỳ ai có đường liên kết" chưa.<br><span style="font-family:var(--mono);font-size:11.5px;opacity:.8">${(err.message||'').replace(/</g,'&lt;')}</span></div>`;
+      countEl.textContent = '';
+    }
+  }
+
+  function fullName(c){
+    return [c.firstName, c.lastName].filter(Boolean).join(' ') || c.id;
+  }
+
+  function initials(c){
+    const a = (c.firstName||'')[0] || (c.lastName||'')[0] || (c.id||'?')[0];
+    const b = (c.lastName||'')[0] || '';
+    return (a+b).toUpperCase();
+  }
+
+  function renderList(list){
+    countEl.textContent = list.length + ' liên hệ';
+    if(!list.length){
+      listArea.innerHTML = '<div class="empty">Không tìm thấy liên hệ nào.</div>';
+      return;
+    }
+    const html = list.map(c => `
+      <button class="row" data-id="${escapeAttr(c.id)}">
+        <div class="tab">${escapeHtml(initials(c))}</div>
+        <div class="row-main">
+          <div class="row-name">${escapeHtml(fullName(c))}</div>
+          <div class="row-meta">${escapeHtml([c.jobTitle, c.company].filter(Boolean).join(' · '))}</div>
+        </div>
+        <svg class="row-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+    `).join('');
+    listArea.innerHTML = `<div class="list">${html}</div>`;
+
+    listArea.querySelectorAll('.row').forEach(el => {
+      el.addEventListener('click', () => openContact(el.dataset.id));
+    });
+  }
+
+  function escapeHtml(s){
+    return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+  function escapeAttr(s){ return escapeHtml(s); }
+
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim().toLowerCase();
+    if(!q){ renderList(contacts); return; }
+    const filtered = contacts.filter(c =>
+      fullName(c).toLowerCase().includes(q) ||
+      (c.company||'').toLowerCase().includes(q) ||
+      (c.jobTitle||'').toLowerCase().includes(q) ||
+      (c.id||'').toLowerCase().includes(q)
+    );
+    renderList(filtered);
+  });
+
+  // ---- Modal chi tiết ----
+  let currentContact = null;
+
+  function openContact(id, fromNfcLink=false){
+    const c = contacts.find(x => x.id === id);
+    if(!c) return;
+    currentContact = c;
+
+    document.getElementById('mName').textContent = fullName(c);
+    document.getElementById('mTitle').textContent = c.jobTitle || '';
+    document.getElementById('mCompany').textContent = c.company || '';
+    document.getElementById('mId').textContent = 'ID · ' + c.id;
+
+    const fields = [];
+    if(c.phone) fields.push(`
+      <div class="field">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"/></svg>
+        <a href="tel:${escapeAttr(c.phone)}">${escapeHtml(c.phone)}</a>
+      </div>`);
+    if(c.email) fields.push(`
+      <div class="field">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
+        <a href="mailto:${escapeAttr(c.email)}">${escapeHtml(c.email)}</a>
+      </div>`);
+    document.getElementById('mFields').innerHTML = fields.join('') || '<div class="field" style="color:#8a8266">Không có thông tin liên hệ khác.</div>';
+
+    backdrop.classList.add('open');
+
+    if(fromNfcLink){
+      logNfcTap(c.id);
+    }
+  }
+
+  function closeModal(){
+    backdrop.classList.remove('open');
+    currentContact = null;
+  }
+  document.getElementById('closeBtn').addEventListener('click', closeModal);
+  backdrop.addEventListener('click', (e) => { if(e.target === backdrop) closeModal(); });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModal(); });
+
+  // ---- Tải VCF ----
+  document.getElementById('vcfBtn').addEventListener('click', () => {
+    if(!currentContact) return;
+    const c = currentContact;
+    const vcf = [
+      'BEGIN:VCARD',
+      'VERSION:3.0',
+      `N:${c.lastName};${c.firstName};;;`,
+      `FN:${fullName(c)}`,
+      c.company ? `ORG:${c.company}` : '',
+      c.jobTitle ? `TITLE:${c.jobTitle}` : '',
+      c.phone ? `TEL;TYPE=CELL:${c.phone}` : '',
+      c.email ? `EMAIL:${c.email}` : '',
+      'END:VCARD'
+    ].filter(Boolean).join('\r\n');
+
+    const blob = new Blob([vcf], {type:'text/vcard;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (fullName(c).replace(/\s+/g,'_') || c.id) + '.vcf';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // ---- Copy link NFC ----
+  document.getElementById('copyBtn').addEventListener('click', async () => {
+    if(!currentContact) return;
+    const link = buildNfcLink(currentContact.id);
+    const btn = document.getElementById('copyBtn');
+    try{
+      await navigator.clipboard.writeText(link);
+    } catch(e){
+      const ta = document.createElement('textarea');
+      ta.value = link; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+    }
+    const original = btn.innerHTML;
+    btn.classList.add('copied');
+    btn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Đã copy';
+    setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = original; }, 1600);
+  });
+
+  function buildNfcLink(id){
+    const url = new URL(location.href);
+    url.search = '';
+    url.searchParams.set('id', id);
+    return url.toString();
+  }
+
+  // ---- Deep link: mở đúng popup khi tap NFC (?id=...) ----
+  function handleDeepLink(){
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id');
+    if(id) openContact(id, true);
+  }
+
+  // ---- Log lượt tap NFC (không bắt buộc phản hồi) ----
+  function logNfcTap(id){
+    if(!POST_URL) return;
+    try{
+      fetch(POST_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({ action:'nfc_tap', id, ts: new Date().toISOString() })
+      }).catch(()=>{});
+    } catch(e){ /* im lặng bỏ qua lỗi log */ }
+  }
+
+  loadContacts();
+</script>
+
+</body>
+</html>
