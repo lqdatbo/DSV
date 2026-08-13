@@ -245,7 +245,7 @@
 </head>
 <body>
 
-<div class="wrap">
+<div class="wrap" id="directoryView">
   <header class="top">
     <div class="eyebrow"><span class="dot"></span>Danh bạ · Tap NFC</div>
     <h1>Danh bạ liên hệ</h1>
@@ -261,6 +261,11 @@
   <div id="listArea">
     <div class="loading">Đang tải danh bạ…</div>
   </div>
+</div>
+
+<!-- Trang tối giản chỉ hiện 1 liên hệ khi mở qua link NFC (?id=...) — không lộ danh bạ đầy đủ -->
+<div class="wrap" id="sharedView" style="display:none;padding-top:60px;text-align:center;">
+  <div class="eyebrow" style="justify-content:center;"><span class="dot"></span>Danh thiếp được chia sẻ</div>
 </div>
 
 <div class="backdrop" id="backdrop">
@@ -342,8 +347,14 @@
         };
       }).filter(c => c.id);
 
-      renderList(contacts);
-      handleDeepLink();
+      // QUAN TRỌNG: nếu URL có ?id=... (mở từ link/NFC chia sẻ), KHÔNG render toàn bộ
+      // danh bạ ra trang — chỉ hiện đúng 1 liên hệ được chia sẻ, tránh lộ dữ liệu người khác.
+      const sharedId = new URLSearchParams(location.search).get('id');
+      if(sharedId){
+        renderSharedView(sharedId);
+      } else {
+        renderList(contacts);
+      }
     } catch(err){
       listArea.innerHTML = `<div class="error">Không tải được danh bạ. Kiểm tra sheet đã bật chia sẻ "Bất kỳ ai có đường liên kết" chưa.<br><span style="font-family:var(--mono);font-size:11.5px;opacity:.8">${(err.message||'').replace(/</g,'&lt;')}</span></div>`;
       countEl.textContent = '';
@@ -441,15 +452,56 @@
     toastTimer = setTimeout(() => toastEl.classList.remove('show'), duration);
   }
 
-  // ---- Xử lý riêng khi mở bằng link NFC (?id=...): CHỈ tải VCF, KHÔNG mở popup ----
-  function openContactFromNfc(id){
+  // ---- Chế độ chia sẻ 1 liên hệ (mở qua ?id=... từ link/NFC) ----
+  // Ẩn HOÀN TOÀN khu vực danh bạ đầy đủ, chỉ hiển thị đúng liên hệ được chia sẻ.
+  const directoryView = document.getElementById('directoryView');
+  const sharedView = document.getElementById('sharedView');
+
+  function renderSharedView(id){
+    directoryView.style.display = 'none';
+    sharedView.style.display = 'block';
+
     const c = contacts.find(x => x.id === id);
     if(!c){
-      showToast('Không tìm thấy liên hệ với ID này.');
+      sharedView.insertAdjacentHTML('beforeend',
+        '<div class="error" style="margin-top:16px;text-align:left">Không tìm thấy liên hệ với ID này. Đường link có thể đã hết hạn hoặc không đúng.</div>');
       return;
     }
+
     logNfcTap(c.id);
     downloadVcf(c);
+
+    const fields = [];
+    if(c.phone) fields.push(`
+      <div class="field">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"/></svg>
+        <a href="tel:${escapeAttr(c.phone)}">${escapeHtml(c.phone)}</a>
+      </div>`);
+    if(c.email) fields.push(`
+      <div class="field">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
+        <a href="mailto:${escapeAttr(c.email)}">${escapeHtml(c.email)}</a>
+      </div>`);
+
+    sharedView.insertAdjacentHTML('beforeend', `
+      <div class="cardmodal" style="margin:20px auto 0;text-align:left;max-width:420px;position:relative;">
+        <div class="m-eyebrow">Danh thiếp</div>
+        <div class="m-name">${escapeHtml(fullName(c))}</div>
+        <div class="m-title">${escapeHtml(c.jobTitle || '')}</div>
+        <div class="m-company">${escapeHtml(c.company || '')}</div>
+        <div class="divider"></div>
+        <div>${fields.join('') || '<div class="field" style="color:#8a8266">Không có thông tin liên hệ khác.</div>'}</div>
+        <div class="actions">
+          <button class="btn btn-primary" id="sharedVcfBtn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16"/></svg>
+            Tải lại VCF
+          </button>
+        </div>
+      </div>
+    `);
+
+    document.getElementById('sharedVcfBtn').addEventListener('click', () => downloadVcf(c));
+
     showToast(`Đã tải danh thiếp của <b>${escapeHtml(fullName(c))}</b>`);
   }
 
@@ -517,13 +569,6 @@
     url.search = '';
     url.searchParams.set('id', id);
     return url.toString();
-  }
-
-  // ---- Deep link: Gọi hàm xử lý riêng cho link NFC ----
-  function handleDeepLink(){
-    const params = new URLSearchParams(location.search);
-    const id = params.get('id');
-    if(id) openContactFromNfc(id);
   }
 
   // ---- Log lượt tap NFC ----
