@@ -402,6 +402,9 @@
 
     if(fromNfcLink){
       logNfcTap(c.id);
+      // Tự động tải file VCF ngay khi mở bằng link NFC (tap đầu đọc NFC = 1 lượt tương tác của người dùng
+      // nên hầu hết trình duyệt vẫn cho phép a.click() kích hoạt tải xuống ở đây).
+      downloadVcf(c);
     }
   }
 
@@ -414,10 +417,8 @@
   document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModal(); });
 
   // ---- Tải VCF ----
-  document.getElementById('vcfBtn').addEventListener('click', () => {
-    if(!currentContact) return;
-    const c = currentContact;
-    const vcf = [
+  function buildVcf(c){
+    return [
       'BEGIN:VCARD',
       'VERSION:3.0',
       `N:${c.lastName};${c.firstName};;;`,
@@ -428,7 +429,10 @@
       c.email ? `EMAIL:${c.email}` : '',
       'END:VCARD'
     ].filter(Boolean).join('\r\n');
+  }
 
+  function downloadVcf(c){
+    const vcf = buildVcf(c);
     const blob = new Blob([vcf], {type:'text/vcard;charset=utf-8'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -437,7 +441,13 @@
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Trì hoãn thu hồi URL một chút để một số trình duyệt mobile kịp xử lý tải xuống
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  document.getElementById('vcfBtn').addEventListener('click', () => {
+    if(!currentContact) return;
+    downloadVcf(currentContact);
   });
 
   // ---- Copy link NFC ----
