@@ -214,6 +214,33 @@
     .cardmodal{animation:none;}
     .eyebrow .dot{animation:none;}
   }
+
+  /* Toast thông báo tải VCF */
+  .toast{
+    position:fixed;left:50%;bottom:28px;
+    transform:translateX(-50%) translateY(12px);
+    display:flex;align-items:center;gap:10px;
+    background:var(--panel-2);
+    border:1px solid #34405290;
+    color:var(--text);
+    padding:12px 16px;border-radius:12px;
+    font-size:13.5px;
+    box-shadow:0 20px 40px -14px rgba(0,0,0,.55);
+    opacity:0;pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+    z-index:60;max-width:min(360px, calc(100vw - 32px));
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .toast .toast-icon{
+    flex:0 0 22px;width:22px;height:22px;border-radius:50%;
+    background:var(--ok);color:#0e1f16;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .toast .toast-text b{color:var(--brass-light);}
+
+  @media (prefers-reduced-motion: reduce){
+    .toast{transition:none;}
+  }
 </style>
 </head>
 <body>
@@ -265,6 +292,13 @@
 
     <div class="id-tag" id="mId"></div>
   </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="toast-icon">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+  </span>
+  <span class="toast-text" id="toastText"></span>
 </div>
 
 <script>
@@ -375,7 +409,7 @@
   // ---- Modal chi tiết ----
   let currentContact = null;
 
-  function openContact(id, fromNfcLink=false){
+  function openContact(id){
     const c = contacts.find(x => x.id === id);
     if(!c) return;
     currentContact = c;
@@ -399,13 +433,30 @@
     document.getElementById('mFields').innerHTML = fields.join('') || '<div class="field" style="color:#8a8266">Không có thông tin liên hệ khác.</div>';
 
     backdrop.classList.add('open');
+  }
 
-    if(fromNfcLink){
-      logNfcTap(c.id);
-      // Tự động tải file VCF ngay khi mở bằng link NFC (tap đầu đọc NFC = 1 lượt tương tác của người dùng
-      // nên hầu hết trình duyệt vẫn cho phép a.click() kích hoạt tải xuống ở đây).
-      downloadVcf(c);
+  // ---- Toast thông báo ----
+  const toastEl = document.getElementById('toast');
+  const toastTextEl = document.getElementById('toastText');
+  let toastTimer = null;
+
+  function showToast(html, duration=3200){
+    toastTextEl.innerHTML = html;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), duration);
+  }
+
+  // ---- Xử lý khi mở bằng link NFC (?id=...): CHỈ tải file VCF, không mở popup ----
+  function openContactFromNfc(id){
+    const c = contacts.find(x => x.id === id);
+    if(!c){
+      showToast('Không tìm thấy liên hệ với ID này.');
+      return;
     }
+    logNfcTap(c.id);
+    downloadVcf(c);
+    showToast(`Đã tải danh thiếp của <b>${escapeHtml(fullName(c))}</b>`);
   }
 
   function closeModal(){
@@ -479,7 +530,7 @@
   function handleDeepLink(){
     const params = new URLSearchParams(location.search);
     const id = params.get('id');
-    if(id) openContact(id, true);
+    if(id) openContactFromNfc(id);
   }
 
   // ---- Log lượt tap NFC (không bắt buộc phản hồi) ----
