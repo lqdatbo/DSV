@@ -294,6 +294,7 @@
   </div>
 </div>
 
+<!-- Khung Toast nhỏ hiển thị trạng thái đã tải -->
 <div class="toast" id="toast" role="status" aria-live="polite">
   <span class="toast-icon">
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
@@ -302,16 +303,9 @@
 </div>
 
 <script>
-  // ====== CẤU HÌNH ======
-  // Dùng API opensheet.elk.sh để đọc Google Sheet dưới dạng JSON (tránh lỗi CORS khi fetch CSV trực tiếp).
-  // Định dạng: https://opensheet.elk.sh/{spreadsheet_id}/{tên_sheet_hoặc_số_thứ_tự_tab, bắt đầu từ 1}
-  // Sheet cần bật chia sẻ "Bất kỳ ai có đường liên kết" > Người xem.
   const SHEET_API_URL = "https://opensheet.elk.sh/1ImwCxw0HGk8bOEdJRQE_Iv5uBgbr1P79ONPVVJGcgzI/1";
-
-  // Endpoint Apps Script — dùng để ghi log lượt tap NFC (không bắt buộc, gửi kiểu fire-and-forget)
   const POST_URL = "https://script.google.com/macros/s/AKfycbx6Ej9cGAzTAXpDQs-4zcVEMZErZS7AbZ631AzJ5jPlOnH9bTMFk2-ouhyu7mNvqZCb/exec";
 
-  // ====== STATE ======
   let contacts = [];
 
   const listArea = document.getElementById('listArea');
@@ -447,7 +441,7 @@
     toastTimer = setTimeout(() => toastEl.classList.remove('show'), duration);
   }
 
-  // ---- Xử lý khi mở bằng link NFC (?id=...): CHỈ tải file VCF, không mở popup ----
+  // ---- Xử lý riêng khi mở bằng link NFC (?id=...): CHỈ tải VCF, KHÔNG mở popup ----
   function openContactFromNfc(id){
     const c = contacts.find(x => x.id === id);
     if(!c){
@@ -492,7 +486,6 @@
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    // Trì hoãn thu hồi URL một chút để một số trình duyệt mobile kịp xử lý tải xuống
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
 
@@ -526,14 +519,14 @@
     return url.toString();
   }
 
-  // ---- Deep link: mở đúng popup khi tap NFC (?id=...) ----
+  // ---- Deep link: Gọi hàm xử lý riêng cho link NFC ----
   function handleDeepLink(){
     const params = new URLSearchParams(location.search);
     const id = params.get('id');
     if(id) openContactFromNfc(id);
   }
 
-  // ---- Log lượt tap NFC (không bắt buộc phản hồi) ----
+  // ---- Log lượt tap NFC ----
   function logNfcTap(id){
     if(!POST_URL) return;
     try{
